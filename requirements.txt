@@ -6,6 +6,7 @@ protobuf==4.21.11
 pyarrow==10.0.1
 pandas-gbq==0.18.1
 pydantic==1.10.12
-psycopg2
+psycopg2-binary==2.9.5
 sqlalchemy-redshift
 redshift_connector
+sqlalchemy==1.4.46

@@ -10,3 +10,4 @@ psycopg2-binary==2.9.5
 sqlalchemy-redshift
 redshift_connector
 sqlalchemy==1.4.46
+python-dotenv

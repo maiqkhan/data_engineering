@@ -35,9 +35,9 @@ def fetch_monthly_data(base_url: str, color: str, extension:str, months: List[in
 
     full_df = pd.concat(df_list)
 
+    
 
-
-    print(full_df.shape)
+    print(full_df.dtypes, full_df.columns)
 
     return full_df
 
@@ -57,11 +57,10 @@ def transform(raw_df: pd.DataFrame) -> pd.DataFrame:
 
     print(df.shape[0]) # Number of rows, after trip distance and passenger_count <= 0 is filtered out
     
+    print(len(df.query('fare_amount == 0')), len(raw_df.query('fare_amount == 0')))
     return df
 
-# @flow(log_prints=True, retries=3)
-# async def s3_ingest_data(df, color: str) -> None:
-@flow
+@flow(log_prints=True, retries=3)
 async def s3_ingest_data(df, color: str) -> None:
 
     aws_credentials_block = await AwsCredentials.load("aws-credentials")
@@ -71,21 +70,28 @@ async def s3_ingest_data(df, color: str) -> None:
         aws_secret_access_key=aws_credentials_block.aws_secret_access_key,
     )
 
-    for pickup_dt in df['lpep_pickup_date'].unique():
+    sorted_df = df.sort_values(by=['lpep_pickup_date'])
+    for pickup_dt in sorted_df['lpep_pickup_date'].unique():
         temp_df = df.query('lpep_pickup_date == @pickup_dt').copy()
 
-        file = temp_df.to_json().encode()
+        
         
         year = pickup_dt.year
         month = pickup_dt.month
         day = pickup_dt.day
-        path = fr"data/{color}/{year}/{month:02}/{day}/{color}_tripdata_{year}-{month:02}.parquet"    
-        print(path)
-        key = await s3_upload(data = file,
+
+        os.makedirs(f"data/{color}/{year}/{month:02}/{day}", exist_ok=True)
+        
+
+        path = fr"data/{color}/{year}/{month:02}/{day}/{color}_tripdata_{year}-{month:02}-{day:02}.parquet"    
+
+        temp_df.to_parquet(path, index=False)
+
+        with open(path, "rb") as file:
+            key = await s3_upload(data = file.read(),
                         bucket=f'mage-demo-bucket-mkhan',
                         aws_credentials=credentials,
-                        key=f"{path}", )
-
+                    key=f"{path}", )
 
 @flow(log_prints=True)
 def green_flow():
@@ -100,8 +106,6 @@ def green_flow():
     df = transform(raw_df)
 
     s3_ingest_data(df, color)
-
-
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ renamed as (
         pulocation_id,
         dolocation_id,
         payment_type,
+        {{get_payment_type_description('payment_type')}} as payment_type_description,
         fare_amount,
         extra,
         mta_tax,

@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: staging
+    database: dev
+    schema: trip_data
+
+    tables:
+      - name: green_rides
+      - name: yellow_rides

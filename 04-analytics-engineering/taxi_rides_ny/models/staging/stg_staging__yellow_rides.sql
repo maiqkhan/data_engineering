@@ -9,6 +9,7 @@ source as (
 renamed as (
 
     select
+        {{ dbt_utils.generate_surrogate_key(['vendorid', 'tpep_pickup_datetime']) }} as tripid,
         vendorid,
         tpep_pickup_datetime,
         tpep_dropoff_datetime,
@@ -19,6 +20,7 @@ renamed as (
         pulocation_id,
         dolocation_id,
         payment_type,
+        {{get_payment_type_description('payment_type')}} as payment_type_description,
         fare_amount,
         extra,
         mta_tax,
